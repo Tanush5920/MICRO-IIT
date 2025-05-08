@@ -1,0 +1,104 @@
+import time
+import threading
+
+# Define questions in categories
+quiz_data = {
+    "Science": [
+        {
+            "question": "What planet is known as the Red Planet?",
+            "options": ["Earth", "Mars", "Jupiter", "Saturn"],
+            "answer": "Mars"
+        },
+        {
+            "question": "What gas do plants absorb from the atmosphere?",
+            "options": ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
+            "answer": "Carbon Dioxide"
+        }
+    ],
+    "History": [
+        {
+            "question": "Who was the first President of the United States?",
+            "options": ["Abraham Lincoln", "George Washington", "John Adams", "Thomas Jefferson"],
+            "answer": "George Washington"
+        },
+        {
+            "question": "In which year did World War II end?",
+            "options": ["1940", "1945", "1950", "1939"],
+            "answer": "1945"
+        }
+    ]
+}
+
+score = 0
+answers_review = []
+
+def ask_question(q, options, correct_answer, time_limit=10):
+    global score
+    print(f"\n{q}")
+    for i, option in enumerate(options):
+        print(f"{i + 1}. {option}")
+
+    # Timer setup
+    answer = None
+    timer_expired = False
+
+    def time_out():
+        nonlocal timer_expired
+        timer_expired = True
+        print("\n⏰ Time's up!")
+
+    timer = threading.Timer(time_limit, time_out)
+    timer.start()
+
+    try:
+        answer_input = input(f"Your answer (1-{len(options)}): ")
+        if not timer_expired:
+            answer = options[int(answer_input) - 1]
+    except (ValueError, IndexError):
+        print("❌ Invalid input. No answer recorded.")
+    finally:
+        timer.cancel()
+
+    # Review and score update
+    if answer == correct_answer:
+        print("✅ Correct!")
+        score += 1
+    elif answer:
+        print(f"❌ Wrong! Correct answer: {correct_answer}")
+    else:
+        print(f"❌ No answer given. Correct answer: {correct_answer}")
+
+    answers_review.append((q, answer, correct_answer))
+
+
+def start_quiz():
+    print("🎮 Welcome to the Quiz Game!")
+    print("Available categories:")
+    categories = list(quiz_data.keys())
+    for i, cat in enumerate(categories):
+        print(f"{i + 1}. {cat}")
+
+    try:
+        cat_choice = int(input("Choose a category by number: "))
+        selected_category = categories[cat_choice - 1]
+    except (ValueError, IndexError):
+        print("Invalid selection. Exiting.")
+        return
+
+    print(f"\nStarting quiz in category: {selected_category}")
+    questions = quiz_data[selected_category]
+
+    for q in questions:
+        ask_question(q["question"], q["options"], q["answer"])
+
+    # Final review
+    print("\n📊 Quiz Complete!")
+    print(f"Your final score: {score}/{len(questions)}")
+    print("\n📝 Review:")
+    for i, (q, your_ans, correct) in enumerate(answers_review):
+        print(f"{i + 1}. {q}")
+        print(f"   Your answer: {your_ans or 'None'} | Correct: {correct}")
+
+# Run the quiz
+if __name__ == "__main__":
+    start_quiz()
